@@ -9,7 +9,8 @@ class Discriminator(nn.Module):
             return nn.Sequential(
                 nn.Conv2d(in_channels, out_channels, (4, 4), (2, 2), (1, 1), bias=False),
                 nn.LeakyReLU(0.2),
-                nn.LayerNorm([out_channels, size, size]),
+                # nn.LayerNorm([out_channels, size, size]),
+                nn.InstanceNorm2d(out_channels, affine=True)
             )
 
         self.block1 = block(image_channels, d_depth, 32)
