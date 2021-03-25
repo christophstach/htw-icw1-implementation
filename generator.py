@@ -1,27 +1,37 @@
+from torch import nn
+
+
 class Generator(nn.Module):
     def __init__(self, g_depth: int, image_channels: int, latent_dimension: int) -> None:
         super().__init__()
 
-        self.main = nn.Sequential(
-            nn.ConvTranspose2d(latent_dimension, 64 * g_depth, (4, 4), (1, 1), (0, 0)), # 4x4
-            nn.LeakyReLU(0.25, True),
-            # Upsample
+        def block(in_channels, out_channels, size):
+            return nn.Sequential(
+                nn.ConvTranspose2d(in_channels, out_channels, (4, 4), (2, 2), (1, 1), bias=False),
+                nn.ReLU(),
+                nn.BatchNorm2d(out_channels),
+                # nn.LayerNorm([out_channels, size, size])
+            )
 
-            nn.Conv2d(64 * g_depth, 32 * g_depth, (3, 3), (1, 1), (1, 1)), # 8x8  
-            nn.LeakyReLU(0.25, True),
-            # Upsample
-
-            nn.Conv2d(32 * g_depth, 16 * g_depth, (3, 3), (1, 1), (1, 1)), # 16x16  
-            nn.LeakyReLU(0.25, True),
-            # Upsample
-
-            nn.Conv2d(16 * g_depth, 8 * g_depth, (3, 3), (1, 1), (1, 1)), # 32x32  
-            nn.LeakyReLU(0.25, True),
-            # Upsample
-
-            nn.Conv2d(8 * g_depth, 4 * g_depth, (3, 3), (1, 1), (1, 1)), # 64x64  
-            nn.LeakyReLU(0.25, True),
-
-            nn.Conv2d(4 * g_depth, image_channels, (1, 1), (1, 1), (0, 0))
-            nn.Tanh(True)
+        self.block1 = nn.Sequential(
+            nn.ConvTranspose2d(latent_dimension, 8 * g_depth, (4, 4), (1, 1), (0, 0), bias=False),
+            nn.ReLU(),
+            nn.BatchNorm2d(8 * g_depth),
+            # nn.LayerNorm([8 * g_depth, 4, 4]),
         )
+        self.block2 = block(8 * g_depth, 4 * g_depth, 8)
+        self.block3 = block(4 * g_depth, 2 * g_depth, 16)
+        self.block4 = block(2 * g_depth, g_depth, 32)
+        self.block5 = nn.Sequential(
+            nn.ConvTranspose2d(g_depth, image_channels, (4, 4), (2, 2), (1, 1), bias=False),
+            nn.Tanh()
+        )
+
+    def forward(self, x):
+        x = self.block1(x)
+        x = self.block2(x)
+        x = self.block3(x)
+        x = self.block4(x)
+        x = self.block5(x)
+
+        return x

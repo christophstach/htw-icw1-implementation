@@ -1,0 +1,7 @@
+.idea
+.venv
+.git
+.datasets
+.ipynb_checkpoints
+*.pyc
+checkpoints

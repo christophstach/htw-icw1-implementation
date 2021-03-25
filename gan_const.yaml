@@ -6,13 +6,13 @@ entrypoint: gan:GANTrail
 
 searcher:
   name: single
-  metric: abs_loss
-  smaller_is_better: false
+  metric: val_abs_d_loss
+  smaller_is_better: true
   max_length:
     batches: 500000
 
 min_validation_period:
-  batches: 500
+  batches: 5000
 
 min_checkpoint_period:
   batches: 10000
@@ -31,8 +31,21 @@ hyperparameters:
 
   # dataset: anime-face
   dataset: celeba-hq
+  image_size: 64
   image_channels: 3
   latent_dimension: 128
+
+  g_depth: 64
+  d_depth: 64
+
+  g_lr: 0.0001
+  g_b1: 0.5
+  g_b2: 0.999
+
+  d_lr: 0.0004
+  d_b1: 0.5
+  d_b2: 0.999
+
 
 environment:
   image:
