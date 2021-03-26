@@ -27,13 +27,13 @@ checkpoint_storage:
   save_experiment_best: 1
 
 hyperparameters:
-  global_batch_size: 32
+  global_batch_size: 64
 
   # dataset: anime-face
   dataset: celeba-hq
   image_size: 64
   image_channels: 3
-  latent_dimension: 128
+  latent_dimension: 100
 
   g_depth: 64
   d_depth: 64
