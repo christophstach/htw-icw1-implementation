@@ -13,20 +13,15 @@ class GradientPenalty:
     def __call__(self, real_images: Tensor, fake_images: Tensor):
         batch_size = real_images.shape[0]
 
-        alpha = torch.rand(batch_size, 1, 1, 1)
-        alpha = self.context.to_device(alpha)
-
-        interpolated_images = alpha * real_images + (1 - alpha) * fake_images
+        alpha = self.context.to_device(torch.rand(batch_size, 1, 1, 1))
+        interpolated_images = real_images + (1 - alpha) * fake_images
         interpolated_images.requires_grad_(True)
 
         scores = self.discriminator(interpolated_images)
 
-        ones = torch.ones_like(scores)
-        ones = self.context.to_device(ones)
-
+        ones = self.context.to_device(torch.ones_like(scores))
         gradients = autograd.grad(outputs=scores, inputs=interpolated_images, grad_outputs=ones, create_graph=True)[0]
-        gradients = gradients.view(batch_size, -1)
-
         penalties = (gradients.norm(2, dim=1) - 1.0) ** 2
+        gradient_penalty = 10.0 * penalties.mean()
 
-        return 10.0 * penalties.mean()
+        return gradient_penalty

@@ -1,4 +1,4 @@
-description: "CelebA HQ - GAN - 64x64"
+description: "Anime Face - GAN - depth:g64/d64 - 128 => 64x64"
 entrypoint: gan:GANTrail
 
 # records_per_epoch: 30000 # for celebAHQ
@@ -27,13 +27,13 @@ checkpoint_storage:
   save_experiment_best: 1
 
 hyperparameters:
-  global_batch_size: 64
+  global_batch_size: 32
 
-  # dataset: anime-face
-  dataset: celeba-hq
+  dataset: anime-face
+  # dataset: celeba-hq
   image_size: 64
   image_channels: 3
-  latent_dimension: 100
+  latent_dimension: 128
 
   g_depth: 64
   d_depth: 64
@@ -49,8 +49,8 @@ hyperparameters:
 
 environment:
   image:
-    cpu: "deepprojects/determined-pytorch-1.7-tf-2.4-cpu"
-    gpu: "deepprojects/determined-cuda-110-pytorch-1.7-tf-2.4-gpu"
+    cpu: "deepprojects/determined-pytorch-1.8-tf-2.4-cpu:1.0.0"
+    gpu: "deepprojects/determined-cuda-111-pytorch-1.8-tf-2.4-gpu:1.0.0"
 
 bind_mounts:
   - host_path: /data/ldap/stachc/datasets

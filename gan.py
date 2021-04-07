@@ -30,11 +30,11 @@ class GANTrail(PyTorchTrial):
         self.g_depth = self.context.get_hparam('g_depth')
         self.d_depth = self.context.get_hparam('d_depth')
 
-        self.g_lr = self.context.get_hparam('g_depth')
+        self.g_lr = self.context.get_hparam('g_lr')
         self.g_b1 = self.context.get_hparam('g_b1')
         self.g_b2 = self.context.get_hparam('g_b2')
 
-        self.d_lr = self.context.get_hparam('d_depth')
+        self.d_lr = self.context.get_hparam('d_lr')
         self.d_b1 = self.context.get_hparam('d_b1')
         self.d_b2 = self.context.get_hparam('d_b2')
 
@@ -55,17 +55,14 @@ class GANTrail(PyTorchTrial):
 
         self.fixed_z = torch.randn(self.num_log_images, self.latent_dimension, 1, 1)
 
+        self.train_csv_header_logged = False
+        self.validation_csv_header_logged = False
+
     def train_batch(self, batch: TorchData, epoch_idx: int, batch_idx: int) -> Union[Tensor, Dict[str, Any]]:
         real_images, _ = batch
         batch_size = real_images.shape[0]
 
         # optimize discriminator
-        for p in self.discriminator.parameters():
-            p.requires_grad = True
-
-        for p in self.generator.parameters():
-            p.requires_grad = False
-
         self.discriminator.zero_grad()
         z = torch.randn(batch_size, self.latent_dimension, 1, 1)
         z = self.context.to_device(z)
@@ -78,17 +75,12 @@ class GANTrail(PyTorchTrial):
 
         d_loss = self.loss.discriminator_loss(real_scores, fake_scores)
         gp = self.gradient_penalty(real_images, fake_images)
+        d_total_loss = d_loss + gp
 
-        self.context.backward(d_loss + gp)
+        self.context.backward(d_total_loss)
         self.context.step_optimizer(self.opt_d)
 
         # optimize generator
-        for p in self.discriminator.parameters():
-            p.requires_grad = False
-
-        for p in self.generator.parameters():
-            p.requires_grad = True
-
         self.generator.zero_grad()
         z = torch.randn(batch_size, self.latent_dimension, 1, 1)
         z = self.context.to_device(z)
@@ -101,9 +93,10 @@ class GANTrail(PyTorchTrial):
         self.context.step_optimizer(self.opt_g)
 
         return {
+            'd_total_loss': d_total_loss,
             'd_loss': d_loss,
-            'abs_d_loss': torch.abs(d_loss),
             'g_loss': g_loss,
+            'abs_d_loss': torch.abs(d_loss),
             'gp': gp
         }
 

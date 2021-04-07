@@ -7,6 +7,8 @@ class Generator(nn.Module):
 
         def block(in_channels, out_channels, size):
             return nn.Sequential(
+                # nn.Upsample(scale_factor=(2, 2), mode='bilinear', align_corners=False),
+                # nn.Conv2d(in_channels, out_channels, (3, 3), (1, 1), (1, 1), bias=False),
                 nn.ConvTranspose2d(in_channels, out_channels, (4, 4), (2, 2), (1, 1), bias=False),
                 nn.ReLU(),
                 nn.BatchNorm2d(out_channels),
@@ -33,6 +35,8 @@ class Generator(nn.Module):
         self.block4 = block(2 * g_depth, g_depth, 32)
         self.block5 = nn.Sequential(
             nn.ConvTranspose2d(g_depth, image_channels, (4, 4), (2, 2), (1, 1), bias=False),
+            # nn.Upsample(scale_factor=(2, 2), mode='bilinear', align_corners=False),
+            # nn.Conv2d(2 * g_depth, image_channels, (3, 3), (1, 1), (1, 1), bias=False),
             nn.Tanh()
         )
 
